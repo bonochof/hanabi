@@ -1,7 +1,7 @@
 HANABI
 ===
 
-Multiplay boardgame
+Multiplay boardgame by Unity
 
 ## Reference
 [webRTCハンズオン](https://github.com/yusuke84/webrtc-handson-2016)
