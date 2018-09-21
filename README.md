@@ -8,11 +8,10 @@ Multiplay boardgame
 
 ## Usage
 ```
-cd server
-npm install ws express
+$ cd server
+$ npm install ws express
 ```
 
 ## Authors
 * [bonochof](https://github.com/bonochof)
-* [kakke18](https;//github.com/kakke18)
-
+* [kakke18](https://github.com/kakke18)
