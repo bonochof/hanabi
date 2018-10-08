@@ -1,7 +1,7 @@
 HANABI
 ===
 
-Multiplay boardgame by Unity
+Multiplay boardgame
 
 ## Reference
 [webRTCハンズオン](https://github.com/yusuke84/webrtc-handson-2016)
@@ -22,9 +22,9 @@ python -m SimpleHTTPServer 8000
 (PHP)
 php -S localhost:8000
 ```
-Access to '[http://localhost:8000](http://localhost:8000)'
+Access to [http://localhost:8000](http://localhost:8000)
 
-※Every browser supports webRTC 1.0, but we are developing it for Chrome or Firefox
+※ Every browser supports webRTC 1.0 but we are developing it for Chrome or Firefox
 
 ## Authors
 * [bonochof](https://github.com/bonochof)
