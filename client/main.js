@@ -1,6 +1,7 @@
 const localVideo = document.getElementById('local_video');
 const remoteVideo = document.getElementById('remote_video');
 const startVideoBtn = document.getElementById('start_video_btn');
+const stopVideoBtn = document.getElementById('stop_video_btn');
 const connectBtn = document.getElementById('connect_btn');
 const hangupBtn = document.getElementById('hangup_btn');
 let localStream = null;
@@ -77,6 +78,11 @@ startVideoBtn.addEventListener('click', async () => {
     } catch(err){
         console.error('mediaDevice.getUserMedia() error:', err);
     }
+});
+
+// stop
+stopVideoBtn.addEventListener('click', () => {
+    cleanupVideoElement(localVideo);
 });
 
 // Videoの再生を開始する
