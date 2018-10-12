@@ -4,6 +4,7 @@ const startVideoBtn = document.getElementById('start_video_btn');
 const stopVideoBtn = document.getElementById('stop_video_btn');
 const connectBtn = document.getElementById('connect_btn');
 const hangupBtn = document.getElementById('hangup_btn');
+
 let localStream = null;
 let peerConnection = null;
 let negotiationneededCounter = 0;
@@ -52,7 +53,7 @@ ws.onmessage = (evt) => {
 };
 
 // ICE candaidate受信時にセットする
-function addIceCandidate(candidate) {
+const addIceCandidate = (candidate) => {
     if (peerConnection) {
         peerConnection.addIceCandidate(candidate);
     }
@@ -60,15 +61,15 @@ function addIceCandidate(candidate) {
         console.error('PeerConnection not exist!');
         return;
     }
-}
+};
 
 // ICE candidate生成時に送信する
-function sendIceCandidate(candidate) {
+const sendIceCandidate = (candidate) => {
     console.log('---sending ICE candidate ---');
     const message = JSON.stringify({ type: 'candidate', ice: candidate });
     console.log('sending candidate=' + message);
     ws.send(message);
-}
+};
 
 // getUserMediaでカメラ、マイクにアクセス
 startVideoBtn.addEventListener('click', async () => {
@@ -86,13 +87,13 @@ stopVideoBtn.addEventListener('click', () => {
 });
 
 // Videoの再生を開始する
-async function playVideo(element, stream) {
+const playVideo = async (element, stream) => {
     element.srcObject = stream;
     await element.play();
-}
+};
 
 // WebRTCを利用する準備をする
-function prepareNewConnection(isOffer) {
+const prepareNewConnection = (isOffer) => {
     const pc_config = {"iceServers":[ {"urls":"stun:stun.webrtc.ecl.ntt.com:3478"} ]};
     const peer = new RTCPeerConnection(pc_config);
 
@@ -155,15 +156,15 @@ function prepareNewConnection(isOffer) {
     }
 
     return peer;
-}
+};
 
 // 手動シグナリングのための処理を追加する
-function sendSdp(sessionDescription) {
+const sendSdp = (sessionDescription) => {
     console.log('---sending sdp ---');
      const message = JSON.stringify(sessionDescription);
      console.log('sending SDP=' + message);
      ws.send(message);     
-}
+};
 
 // Connectボタンが押されたらWebRTCのOffer処理を開始
 connectBtn.addEventListener('click', () => {
@@ -177,7 +178,7 @@ connectBtn.addEventListener('click', () => {
 });
 
 // Answer SDPを生成する
-async function makeAnswer() {
+const makeAnswer = async () => {
     console.log('sending Answer. Creating remote session description...' );
     if (! peerConnection) {
         console.error('peerConnection NOT exist!');
@@ -192,10 +193,10 @@ async function makeAnswer() {
     } catch(err){
         console.error(err);
     }
-}
+};
 
 // Offer側のSDPをセットする処理
-async function setOffer(sessionDescription) {
+const setOffer = async(sessionDescription) => {
     if (peerConnection) {
         console.error('peerConnection alreay exist!');
     }
@@ -207,10 +208,10 @@ async function setOffer(sessionDescription) {
     } catch(err){
         console.error('setRemoteDescription(offer) ERROR: ', err);
     }
-}
+};
 
 // Answer側のSDPをセットする場合
-async function setAnswer(sessionDescription) {
+const setAnswer = async (sessionDescription) =>  {
     if (! peerConnection) {
         console.error('peerConnection NOT exist!');
         return;
@@ -221,14 +222,14 @@ async function setAnswer(sessionDescription) {
     } catch(err){
         console.error('setRemoteDescription(answer) ERROR: ', err);
     }
-}
+};
 
 // P2P通信を切断する
 hangupBtn.addEventListener('click', () => {
     hangUp();
 });
 
-function hangUp() {
+const hangUp = () => {
     if (peerConnection) {
         if(peerConnection.iceConnectionState !== 'closed'){
             peerConnection.close();
@@ -242,10 +243,10 @@ function hangUp() {
         }
     }
     console.log('peerConnection is closed.');
-}
+};
 
 // ビデオエレメントを初期化する
-function cleanupVideoElement(element) {
+const cleanupVideoElement = (element) => {
     element.pause();
     element.srcObject = null;
-}
+};
