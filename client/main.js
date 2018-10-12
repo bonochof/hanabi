@@ -219,6 +219,10 @@ async function setAnswer(sessionDescription) {
 
 // P2P通信を切断する
 hangupBtn.addEventListener('click', () => {
+    hangUp();
+});
+
+function hangUp() {
     if (peerConnection) {
         if(peerConnection.iceConnectionState !== 'closed'){
             peerConnection.close();
@@ -232,7 +236,7 @@ hangupBtn.addEventListener('click', () => {
         }
     }
     console.log('peerConnection is closed.');
-});
+}
 
 // ビデオエレメントを初期化する
 function cleanupVideoElement(element) {
