@@ -4,11 +4,11 @@ const wsServer = new WebSocketServer({ port: port });
 
 let connects = [];
 
-wsServer.on('connection', function(ws) {
+wsServer.on('connection', (ws) => {
     console.log('-- websocket connected --');
     connects.push(ws)
 
-    ws.on('message', function(message) {
+    ws.on('message', (message) => {
         wsServer.clients.forEach(function each(client) {
             if (isSame(ws, client)) {
                 console.log('- skip sender -');
@@ -20,7 +20,7 @@ wsServer.on('connection', function(ws) {
         });
     });
 
-    ws.on('close', function () {
+    ws.on('close', () => {
         console.log('stopping client send "close"');
 
         // 接続切れのソケットを配列から除外
@@ -31,9 +31,9 @@ wsServer.on('connection', function(ws) {
     });
 });
 
-function isSame(ws1, ws2) {
+const isSame = (ws1, ws2) => {
     // -- compare object --
     return (ws1 === ws2);
-}
+};
 
 console.log('websocket server start. port=' + port);
