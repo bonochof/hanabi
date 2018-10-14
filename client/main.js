@@ -148,7 +148,7 @@ const prepareNewConnection = (isOffer) => {
 
 const makeAnswer = async () => {
     console.log('sending Answer. Creating remote session description...' );
-    if (! peerConnection) {
+    if (!peerConnection) {
         console.error('peerConnection NOT exist!');
         return;
     }
