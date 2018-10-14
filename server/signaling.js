@@ -23,7 +23,7 @@ wsServer.on('connection', (ws) => {
     ws.on('close', () => {
         console.log('stopping client send "close"');
 
-        // 接続切れのソケットを配列から除外
+        // exclude connection broken socket from array
         connects = connects.filter(function (conn, i) {
             return (conn === ws) ? false : true;
         });
@@ -32,7 +32,7 @@ wsServer.on('connection', (ws) => {
 });
 
 const isSame = (ws1, ws2) => {
-    // -- compare object --
+    // compare object
     return (ws1 === ws2);
 };
 
