@@ -112,6 +112,9 @@ const prepareNewConnection = (isOffer) => {
                     console.log('createOffer() succsess in promise');
                     await peer.setLocalDescription(offer);
                     console.log('setLocalDescription() succsess in promise');
+                    const message = JSON.stringify(peer.localDescription);
+                    console.log('sending SDP=' + message);
+                    ws.send(message);  
                     negotiationneededCounter++;
                 }
             }
@@ -157,6 +160,9 @@ const makeAnswer = async () => {
         console.log('createAnswer() succsess in promise');
         await peerConnection.setLocalDescription(answer);
         console.log('setLocalDescription() succsess in promise');
+        const message = JSON.stringify(peerConnection.localDescription);
+        console.log('sending SDP=' + message);
+        ws.send(message);  
     } catch(err){
         console.error(err);
     }
