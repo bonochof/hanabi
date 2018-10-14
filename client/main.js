@@ -1,16 +1,27 @@
+/*
+    html parts
+*/
+// video
 const localVideo = document.getElementById('local_video');
 const remoteVideo = document.getElementById('remote_video');
+// button
 const startVideoBtn = document.getElementById('start_video_btn');
 const stopVideoBtn = document.getElementById('stop_video_btn');
 const connectBtn = document.getElementById('connect_btn');
 const hangupBtn = document.getElementById('hangup_btn');
 
+/*
+    global variables
+*/
 let localStream = null;
 let peerConnection = null;
 let negotiationneededCounter = 0;
 let isOffer = false;
 
-// シグナリングサーバへ接続する
+/*
+    Web Socket
+*/
+// connect server
 const wsUrl = 'ws://localhost:3001/';
 const ws = new WebSocket(wsUrl);
 ws.onopen = (evt) => {
@@ -52,7 +63,9 @@ ws.onmessage = (evt) => {
     }
 };
 
-// ICE candaidate受信時にセットする
+/*
+    webRTC
+*/
 const addIceCandidate = (candidate) => {
     if (peerConnection) {
         peerConnection.addIceCandidate(candidate);
@@ -63,7 +76,6 @@ const addIceCandidate = (candidate) => {
     }
 };
 
-// ICE candidate生成時に送信する
 const sendIceCandidate = (candidate) => {
     console.log('---sending ICE candidate ---');
     const message = JSON.stringify({ type: 'candidate', ice: candidate });
@@ -71,50 +83,27 @@ const sendIceCandidate = (candidate) => {
     ws.send(message);
 };
 
-// getUserMediaでカメラ、マイクにアクセス
-startVideoBtn.addEventListener('click', async () => {
-    try{
-        localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: false});
-        playVideo(localVideo,localStream);
-    } catch(err){
-        console.error('mediaDevice.getUserMedia() error:', err);
-    }
-});
-
-// stop
-stopVideoBtn.addEventListener('click', () => {
-    cleanupVideoElement(localVideo);
-});
-
-// Videoの再生を開始する
-const playVideo = async (element, stream) => {
-    element.srcObject = stream;
-    await element.play();
-};
-
-// WebRTCを利用する準備をする
 const prepareNewConnection = (isOffer) => {
     const pc_config = {"iceServers":[ {"urls":"stun:stun.webrtc.ecl.ntt.com:3478"} ]};
     const peer = new RTCPeerConnection(pc_config);
 
-    // リモートのMediStreamTrackを受信した時
+    // receive remote MediStreamTrack
     peer.ontrack = evt => {
         console.log('-- peer.ontrack()');
         playVideo(remoteVideo, evt.streams[0]);
     };
 
-    // ICE Candidateを収集したときのイベント
-    peer.onicecandidate = evt => {
+    // collection ICE Candidate
+    peer.onicecandidate = (evt) => {
         if (evt.candidate) {
             console.log(evt.candidate);
             sendIceCandidate(evt.candidate);            
         } else {
             console.log('empty ice event');
-            // sendSdp(peer.localDescription);
         }
     };
 
-    // Offer側でネゴシエーションが必要になったときの処理
+    // need negotiation (offer side)
     peer.onnegotiationneeded = async () => {
         try {
             if(isOffer){
@@ -132,7 +121,7 @@ const prepareNewConnection = (isOffer) => {
         }
     }
 
-    // ICEのステータスが変更になったときの処理
+    // change ICE status
     peer.oniceconnectionstatechange = function() {
         console.log('ICE connection Status has changed to ' + peer.iceConnectionState);
         switch (peer.iceConnectionState) {
@@ -147,7 +136,7 @@ const prepareNewConnection = (isOffer) => {
         }
     };
 
-    // ローカルのMediaStreamを利用できるようにする
+    // use local MediaStream
     if (localStream) {
         console.log('Adding local stream...');
         localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
@@ -158,26 +147,6 @@ const prepareNewConnection = (isOffer) => {
     return peer;
 };
 
-// 手動シグナリングのための処理を追加する
-const sendSdp = (sessionDescription) => {
-    console.log('---sending sdp ---');
-     const message = JSON.stringify(sessionDescription);
-     console.log('sending SDP=' + message);
-     ws.send(message);     
-};
-
-// Connectボタンが押されたらWebRTCのOffer処理を開始
-connectBtn.addEventListener('click', () => {
-    if (! peerConnection) {
-        console.log('make Offer');
-        peerConnection = prepareNewConnection(true);
-    }
-    else {
-        console.warn('peer already exist.');
-    }
-});
-
-// Answer SDPを生成する
 const makeAnswer = async () => {
     console.log('sending Answer. Creating remote session description...' );
     if (! peerConnection) {
@@ -195,7 +164,6 @@ const makeAnswer = async () => {
     }
 };
 
-// Offer側のSDPをセットする処理
 const setOffer = async(sessionDescription) => {
     if (peerConnection) {
         console.error('peerConnection alreay exist!');
@@ -210,7 +178,6 @@ const setOffer = async(sessionDescription) => {
     }
 };
 
-// Answer側のSDPをセットする場合
 const setAnswer = async (sessionDescription) =>  {
     if (! peerConnection) {
         console.error('peerConnection NOT exist!');
@@ -224,7 +191,16 @@ const setAnswer = async (sessionDescription) =>  {
     }
 };
 
-// P2P通信を切断する
+connectBtn.addEventListener('click', () => {
+    if (! peerConnection) {
+        console.log('make Offer');
+        peerConnection = prepareNewConnection(true);
+    }
+    else {
+        console.warn('peer already exist.');
+    }
+});
+
 hangupBtn.addEventListener('click', () => {
     hangUp();
 });
@@ -245,8 +221,30 @@ const hangUp = () => {
     console.log('peerConnection is closed.');
 };
 
-// ビデオエレメントを初期化する
+// initialize video element
 const cleanupVideoElement = (element) => {
     element.pause();
     element.srcObject = null;
+};
+
+/*
+    media
+*/
+startVideoBtn.addEventListener('click', async () => {
+    try{
+        // access camer eith getUserMedia()
+        localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: false});
+        playVideo(localVideo,localStream);
+    } catch(err){
+        console.error('mediaDevice.getUserMedia() error:', err);
+    }
+});
+
+stopVideoBtn.addEventListener('click', () => {
+    cleanupVideoElement(localVideo);
+});
+
+const playVideo = async (element, stream) => {
+    element.srcObject = stream;
+    await element.play();
 };
