@@ -1,5 +1,3 @@
-"use strict";
-
 const WebSocketServer = require('ws').Server;
 const port = 3001;
 const wsServer = new WebSocketServer({ port: port });
