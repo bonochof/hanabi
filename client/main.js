@@ -112,7 +112,6 @@ const prepareNewConnection = (isOffer) => {
                     console.log('createOffer() succsess in promise');
                     await peer.setLocalDescription(offer);
                     console.log('setLocalDescription() succsess in promise');
-                    sendSdp(peer.localDescription);
                     negotiationneededCounter++;
                 }
             }
@@ -158,7 +157,6 @@ const makeAnswer = async () => {
         console.log('createAnswer() succsess in promise');
         await peerConnection.setLocalDescription(answer);
         console.log('setLocalDescription() succsess in promise');
-        sendSdp(peerConnection.localDescription);
     } catch(err){
         console.error(err);
     }
