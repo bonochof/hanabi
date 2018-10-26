@@ -10,7 +10,7 @@ Multiplay boardgame by Unity
 
 ## Prepare
 ```
-npm install ws express
+npm install socket.io
 ```
 
 ## Usage
