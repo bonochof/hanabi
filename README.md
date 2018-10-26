@@ -5,6 +5,7 @@ Multiplay boardgame by Unity
 
 ## Reference
 [webRTCハンズオン](https://github.com/yusuke84/webrtc-handson-2016)
+[Socket.IOで始めるWebSocket超入門](http://www.atmarkit.co.jp/ait/series/3113/)
 
 ## Prepare
 ```
