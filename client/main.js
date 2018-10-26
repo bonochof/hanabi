@@ -19,6 +19,15 @@ let negotiationneededCounter = 0;
 let isOffer = false;
 
 /*
+    room name
+*/
+const rootPath = location.href;
+const roomPath = '?room='
+const startRoom = rootPath.indexOf(roomPath);
+const roomName = rootPath.substr(startRoom + roomPath.length, rootPath.length);
+console.log(roomName);
+
+/*
     Socket
 */
 // connect server
