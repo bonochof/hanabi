@@ -4,28 +4,23 @@
 // video
 const localVideo = document.getElementById('local_video');
 const remoteVideo = document.getElementById('remote_video');
+// room
+const userNameText = document.getElementById('user_name_text');
+const roomNameText = document.getElementById('room_name_text');
+const enterRoomBtn = document.getElementById('enter_room_btn');
 // button
 const startVideoBtn = document.getElementById('start_video_btn');
 const stopVideoBtn = document.getElementById('stop_video_btn');
 const connectBtn = document.getElementById('connect_btn');
 const hangupBtn = document.getElementById('hangup_btn');
-
+// log
+const log = document.getElementById('log');
 /*
     global variables
 */
 let localStream = null;
 let peerConnection = null;
 let negotiationneededCounter = 0;
-let isOffer = false;
-
-/*
-    room name
-*/
-const rootPath = location.href;
-const roomPath = '?room='
-const startRoom = rootPath.indexOf(roomPath);
-const roomName = rootPath.substr(startRoom + roomPath.length, rootPath.length);
-console.log(roomName);
 
 /*
     Socket
@@ -34,24 +29,40 @@ console.log(roomName);
 const port = 3001;
 const socket = io.connect('http://localhost:' + port + '/');
 
-socket.on('connect', (evt) => {
-    console.log('socket opened.');
-    socketReady = true;
+socket.on('connect', () => {
+    console.log('socket opened');
 });
-socket.on('message', (evt) => {
-    const message = JSON.parse(evt);
-    switch (message.type) {
+socket.on('room', (msg) => {
+    console.log('received room message');
+    const parseMsg = JSON.parse(msg);
+    switch (parseMsg.type) {
+        case 'log':
+            log.innerText += '\n' + parseMsg.data;
+            startVideo();
+            break;
+        case 'pair':
+            // connect();
+            break;
+        default:
+            console.error('error');
+            break;
+    }
+
+});
+socket.on('P2P', (msg) => {
+    const parseMsg = JSON.parse(msg);
+    switch (parseMsg.type) {
         case 'offer':
             console.log('received offer');
-            setOffer(message);
+            setOffer(parseMsg);
             break;
         case 'answer':
             console.log('received answer');
-            setAnswer(message);
+            setAnswer(parseMsg);
             break;
         case 'candidate':
             console.log('received ICE candidate');
-            const candidate = new RTCIceCandidate(message.ice);
+            const candidate = new RTCIceCandidate(parseMsg.ice);
             addIceCandidate(candidate);
             break;
         case 'close':
@@ -59,7 +70,7 @@ socket.on('message', (evt) => {
             hangUp();
             break;
         default:
-            console.warn("Invalid message");
+            console.error('error');
             break;
     }
 });
@@ -79,12 +90,16 @@ const addIceCandidate = (candidate) => {
 
 const sendIceCandidate = (candidate) => {
     console.log('sending ICE candidate');
-    const message = JSON.stringify({ type: 'candidate', ice: candidate });
-    socket.json.send(message);
+    const message = JSON.stringify({
+        type: 'candidate', ice: candidate
+    });
+    socket.emit('P2P', message);
 };
 
 const prepareNewConnection = (isOffer) => {
-    const pc_config = { "iceServers": [{ "urls": "stun:stun.webrtc.ecl.ntt.com:3478" }] };
+    const pc_config = {
+        "iceServers": [{ "urls": "stun:stun.webrtc.ecl.ntt.com:3478" }]
+    };
     const peer = new RTCPeerConnection(pc_config);
 
     // receive remote MediStreamTrack
@@ -96,7 +111,6 @@ const prepareNewConnection = (isOffer) => {
     // collection ICE Candidate
     peer.onicecandidate = (evt) => {
         if (evt.candidate) {
-            console.log(evt.candidate);
             sendIceCandidate(evt.candidate);
         } else {
             console.log('empty ice event');
@@ -113,8 +127,8 @@ const prepareNewConnection = (isOffer) => {
                     await peer.setLocalDescription(offer);
                     console.log('setLocalDescription() succsess in promise');
                     const message = JSON.stringify(peer.localDescription);
-                    console.log('sending SDP=' + message);
-                    socket.json.send(message);
+                    console.log('sending SDP');
+                    socket.emit('P2P', message);
                     negotiationneededCounter++;
                 }
             }
@@ -140,8 +154,8 @@ const prepareNewConnection = (isOffer) => {
 
     // use local MediaStream
     if (localStream) {
-        console.log('Adding local stream...');
         localStream.getTracks().forEach(track => peer.addTrack(track, localStream));
+        console.log('Added local stream');
     } else {
         console.warn('no local stream, but continue.');
     }
@@ -150,7 +164,6 @@ const prepareNewConnection = (isOffer) => {
 };
 
 const makeAnswer = async () => {
-    console.log('sending Answer. Creating remote session description...');
     if (!peerConnection) {
         console.error('peerConnection NOT exist!');
         return;
@@ -161,8 +174,8 @@ const makeAnswer = async () => {
         await peerConnection.setLocalDescription(answer);
         console.log('setLocalDescription() succsess in promise');
         const message = JSON.stringify(peerConnection.localDescription);
-        console.log('sending SDP=' + message);
-        socket.json.send(message);
+        console.log('sending SDP');
+        socket.emit('P2P', message);
     } catch (err) {
         console.error(err);
     }
@@ -195,7 +208,7 @@ const setAnswer = async (sessionDescription) => {
     }
 };
 
-connectBtn.addEventListener('click', () => {
+const connect = () => {
     if (!peerConnection) {
         console.log('make Offer');
         peerConnection = prepareNewConnection(true);
@@ -203,10 +216,15 @@ connectBtn.addEventListener('click', () => {
     else {
         console.warn('peer already exist.');
     }
+};
+
+connectBtn.addEventListener('click', () => {
+    connect();
 });
 
 hangupBtn.addEventListener('click', () => {
     hangUp();
+    changeDisplay();
 });
 
 const hangUp = () => {
@@ -215,9 +233,11 @@ const hangUp = () => {
             peerConnection.close();
             peerConnection = null;
             negotiationneededCounter = 0;
-            const message = JSON.stringify({ type: 'close' });
+            const message = JSON.stringify({
+                type: 'close'
+            });
             console.log('sending close message');
-            socket.json.send(message);
+            socket.emit('P2P', message);
             cleanupVideoElement(remoteVideo);
             return;
         }
@@ -232,23 +252,74 @@ const cleanupVideoElement = (element) => {
 };
 
 /*
+    room name
+*/
+enterRoomBtn.addEventListener('click', () => {
+    const userName = userNameText.value;
+    const roomName = roomNameText.value;
+    const sendMsg = JSON.stringify({
+        userName: userName,
+        roomName: roomName
+    });
+    socket.emit('enter room', sendMsg);
+    changeDisplay();
+});
+
+
+/*
     media
 */
-startVideoBtn.addEventListener('click', async () => {
+const startVideo = async () => {
     try {
         // access camer eith getUserMedia()
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        localStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+        });
         playVideo(localVideo, localStream);
     } catch (err) {
         console.error('mediaDevice.getUserMedia() error:', err);
     }
+};
+const playVideo = async (element, stream) => {
+    element.srcObject = stream;
+    await element.play();
+};
+startVideoBtn.addEventListener('click', () => {
+    startVideo();
 });
 
 stopVideoBtn.addEventListener('click', () => {
     cleanupVideoElement(localVideo);
 });
 
-const playVideo = async (element, stream) => {
-    element.srcObject = stream;
-    await element.play();
+/*
+    html parts
+*/
+const changeDisplay = () => {
+    convertDisplay(userNameText);
+    convertDisplay(roomNameText);
+    convertDisplay(enterRoomBtn);
+    convertDisplay(startVideoBtn);
+    convertDisplay(stopVideoBtn);
+    convertDisplay(connectBtn);
+    convertDisplay(hangupBtn);
+    convertDisplay(localVideo);
+    convertDisplay(remoteVideo);
 };
+
+const convertDisplay = (ele) => {
+    if (ele.style.display == 'block') {
+        none(ele);
+    } else {
+        display(ele);
+    }
+}
+
+const display = (ele) => {
+    ele.style.display = 'block';
+}
+
+const none = (ele) => {
+    ele.style.display = 'none';
+}

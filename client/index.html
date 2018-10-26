@@ -9,14 +9,23 @@
 
 <body>
 
-    <button type="button" id="start_video_btn">Start Video</button>
-    <button type="button" id="stop_video_btn">Stop Video</button>
-    <button type="button" id="connect_btn">Connect</button>
-    <button type="button" id="hangup_btn">Hang Up</button>
+    <label>name</label>
+    <input type="textarea" id="user_name_text" style="display:block">
+    <label>room</label>
+    <input type="textarea" id="room_name_text" style="display:block">
+    <button type="button" id="enter_room_btn" style="display:block">Enter</button>
+    <button type="button" id="start_video_btn" style="display:none">Start Video</button>
+    <button type="button" id="stop_video_btn" style="display:none">Stop Video</button>
+    <button type="button" id="connect_btn" style="display:none">Connect</button>
+    <button type="button" id="hangup_btn" style="display:none">Hang Up</button>
     <div>
-        <video id="local_video" autoplay></video>
-        <video id="remote_video" autoplay></video>
+        <video id="local_video" autoplay style="display:none"></video>
+        <video id="remote_video" autoplay style="display:none"></video>
     </div>
+    <br>
+    <h3>log</h3>
+    <br>
+    <div id="log"></div>
 
     <script type='text/javascript' src='main.js'></script>
 

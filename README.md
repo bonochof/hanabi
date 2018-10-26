@@ -5,6 +5,7 @@ Multiplay boardgame by Unity
 
 ## Reference
 [webRTCハンズオン](https://github.com/yusuke84/webrtc-handson-2016)
+
 [Socket.IOで始めるWebSocket超入門](http://www.atmarkit.co.jp/ait/series/3113/)
 
 ## Prepare
@@ -23,7 +24,11 @@ python -m SimpleHTTPServer 8000
 (PHP)
 php -S localhost:8000
 ```
-Access to '[http://localhost:8000](http://localhost:8000)'
+Access to '[http://localhost:8000](http://localhost:8000)'.
+
+Input 'name' and 'room'.
+
+If there is a person who inputsthe same room name, P2P connection is astabilished by pressing the 'connect' button.
 
 ※Every browser supports webRTC 1.0, but we are developing it for Chrome or Firefox
 
