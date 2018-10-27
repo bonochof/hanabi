@@ -1,39 +1,17 @@
-const WebSocketServer = require('ws').Server;
 const port = 3001;
-const wsServer = new WebSocketServer({ port: port });
+const io = require('socket.io').listen(port);
 
-let connects = [];
+console.log('Server is listening on port: ' + port);
 
-wsServer.on('connection', (ws) => {
-    console.log('-- websocket connected --');
-    connects.push(ws)
-
-    ws.on('message', (message) => {
-        wsServer.clients.forEach(function each(client) {
-            if (isSame(ws, client)) {
-                console.log('- skip sender -');
-            }
-            else {
-                client.send(message);
-                console.log('sended message');
-            }
-        });
+io.sockets.on('connection', (socket) => {
+    console.log('socket conected')
+    socket.on('message', (message) => {
+        socket.broadcast.emit('message', message);
+        console.log('send message')
     });
 
-    ws.on('close', () => {
-        console.log('stopping client send "close"');
-
-        // exclude connection broken socket from array
-        connects = connects.filter(function (conn, i) {
-            return (conn === ws) ? false : true;
-        });
-
+    socket.on('disconnect', () => {
+        socket.broadcast.emit('user disconnected');
+        console.log('user disconnected')
     });
 });
-
-const isSame = (ws1, ws2) => {
-    // compare object
-    return (ws1 === ws2);
-};
-
-console.log('websocket server start. port=' + port);
